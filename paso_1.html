@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema Docente - Paso 1</title>
+    <style>
+        /* 1. Variables de la Paleta Institucional (Ajustadas) */
+        :root {
+            --guinda: #7A1C33;
+            --guinda-oscuro: #5A1425;
+            --dorado: #B38E5D;
+            --fondo: #F4F4F5;
+            --texto: #1F2937;
+            --borde: #E5E7EB;
+            --peligro: #DC2626;
+            --clase-actual: #e8f5e9; /* Verde muy suave para destacar lo actual */
+            --clase-actual-borde: #4caf50;
+        }
+        
+        body { margin: 0; font-family: 'Segoe UI', system-ui, sans-serif; background: var(--fondo); color: var(--texto); display: flex; height: 100vh; overflow: hidden; }
+        .oculto { display: none !important; }
+        
+        /* 2. Menú Lateral */
+        .sidebar { width: 250px; background: #27272A; color: white; display: flex; flex-direction: column; }
+        .sidebar-header { padding: 25px 20px; font-size: 18px; font-weight: bold; border-bottom: 1px solid #3F3F46; color: var(--dorado); text-transform: uppercase; letter-spacing: 1px; }
+        .menu-item { padding: 15px 20px; cursor: pointer; border-bottom: 1px solid #3F3F46; font-size: 14px; transition: 0.2s; }
+        .menu-item:hover { background: #3F3F46; }
+        .menu-item.activo { background: var(--guinda); border-left: 4px solid var(--dorado); font-weight: bold; }
+
+        /* 3. Área de Contenido */
+        .main-content { flex-grow: 1; padding: 40px; overflow-y: auto; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .header h1 { margin: 0; font-size: 24px; color: var(--guinda); }
+        
+        /* 4. Tarjetas Inteligentes (Clases y Recordatorios) */
+        .grid-dashboard { display: grid; grid-template-columns: 2fr 1fr; gap: 25px; align-items: start; }
+        
+        /* Estilos específicos para la sección de clases */
+        .seccion-clases { display: flex; flex-direction: column; gap: 15px; }
+        
+        .card { background: white; padding: 20px; border-radius: 10px; border: 1px solid var(--borde); box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
+        
+        /* Modificadores para la Clase Actual */
+        .card-clase-actual { 
+            background-color: var(--clase-actual);
+            border: 2px solid var(--clase-actual-borde);
+            border-left: 8px solid var(--clase-actual-borde); 
+        }
+        
+        /* Modificadores para la Siguiente Clase */
+        .card-proxima { border-left: 5px solid var(--guinda); opacity: 0.8; }
+        
+        .card-notas { border-left: 5px solid var(--dorado); }
+        .etiqueta-gris { color: #6B7280; font-size: 12px; text-transform: uppercase; font-weight: bold; display: block; margin-bottom: 8px;}
+        .etiqueta-destacada { color: var(--clase-actual-borde); font-size: 14px; text-transform: uppercase; font-weight: bold; display: block; margin-bottom: 8px;}
+
+        /* 5. Botones y Elementos de Notas */
+        .btn { background: var(--guinda); color: white; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; transition: 0.2s; }
+        .btn:hover { background: var(--guinda-oscuro); }
+        .btn-accion-clase { background: var(--clase-actual-borde); color: white; width: 100%; margin-top: 15px;}
+        .btn-accion-clase:hover { background: #388e3c; }
+        .btn-outline { background: transparent; border: 1px solid var(--borde); color: var(--texto); padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold;}
+        .btn-outline:hover { background: var(--fondo); }
+        
+        .lista-notas { list-style: none; padding: 0; margin: 0; }
+        .item-nota { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--borde); font-size: 14px; }
+        .item-nota:last-child { border-bottom: none; }
+        .acciones-nota button { background: transparent; border: none; cursor: pointer; font-size: 14px; margin-left: 5px; opacity: 0.6; }
+        .acciones-nota button:hover { opacity: 1; }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="sidebar-header">👨‍🏫 SEP Docente</div>
+        <div class="menu-item activo">🏠 Inicio / Dashboard</div>
+        <div class="menu-item">✅ Control Diario</div>
+        <div class="menu-item">👥 Mis Grupos y Alumnos</div>
+        <div class="menu-item">⚙️ Configuración</div>
+    </div>
+
+    <div class="main-content">
+        <div class="header">
+            <h1>Resumen General</h1>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 13px; font-weight: bold; color: #6B7280;">CICLO ESCOLAR:</span>
+                <select style="padding: 8px; border-radius: 5px; border: 1px solid var(--borde); font-weight: bold; background: white;">
+                    <option>2026-B (Actual)</option>
+                    <option>2026-A (Cerrado)</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="grid-dashboard">
+            
+            <!-- SECCIÓN DE CLASES (Actual y Próxima) -->
+            <div class="seccion-clases">
+                
+                <!-- Tarjeta: Clase Actual (Destacada) -->
+                <div class="card card-clase-actual">
+                    <span class="etiqueta-destacada">🟢 Clase en Curso Ahora</span>
+                    <h2 style="margin: 5px 0; color: #1b5e20; font-size: 26px;">Matemáticas I - Grupo 1-A</h2>
+                    <p style="margin: 5px 0; font-size: 15px; color: var(--texto);">🕒 11:00 hrs - 12:00 hrs &nbsp;|&nbsp; 📍 Aula 4 (Primaria)</p>
+                    <button class="btn btn-accion-clase">Entrar a Control Diario ➔</button>
+                </div>
+
+                <!-- Tarjeta: Siguiente Clase -->
+                <div class="card card-proxima">
+                    <span class="etiqueta-gris">⏭️ Siguiente Clase</span>
+                    <h2 style="margin: 5px 0; color: var(--guinda); font-size: 20px;">Física General - Grupo 2-B</h2>
+                    <p style="margin: 5px 0; font-size: 14px; color: var(--texto);">🕒 12:00 hrs - 13:00 hrs &nbsp;|&nbsp; 📍 Laboratorio 1</p>
+                </div>
+
+            </div>
+            
+            <!-- SECCIÓN DE RECORDATORIOS (Se mantiene igual que el paso anterior) -->
+            <div class="card card-notas">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--borde); padding-bottom: 10px; margin-bottom: 15px;">
+                    <span class="etiqueta-gris" style="margin: 0;">📌 Recordatorios</span>
+                    <button class="btn-outline" id="btnToggleNotas" onclick="alternarVistaNotas()">Ver Recordatorios</button>
+                </div>
+
+                <!-- Estado 1: Vista Resumida -->
+                <div id="vista-resumen-notas">
+                    <p style="font-size: 14px; margin: 0;">Tienes <b id="contador-notas">2</b> notas activas.</p>
+                </div>
+
+                <!-- Estado 2: Vista Expandida con acciones -->
+                <div id="vista-detalle-notas" class="oculto">
+                    <ul class="lista-notas" id="contenedor-notas">
+                        <!-- JavaScript rellenará esto -->
+                    </ul>
+                    <button class="btn" style="width: 100%; margin-top: 15px; background: var(--dorado); color: white;" onclick="agregarNota()">+ Agregar nueva Nota</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Script para los recordatorios interactivos (Se mantiene igual) -->
+    <script>
+        let misNotas = [
+            { id: 1, texto: "Revisar justificante médico de Ana López." },
+            { id: 2, texto: "Subir calificaciones de Matemáticas el viernes." }
+        ];
+
+        function alternarVistaNotas() {
+            const vistaResumen = document.getElementById('vista-resumen-notas');
+            const vistaDetalle = document.getElementById('vista-detalle-notas');
+            const btnToggle = document.getElementById('btnToggleNotas');
+
+            if (vistaDetalle.classList.contains('oculto')) {
+                vistaResumen.classList.add('oculto');
+                vistaDetalle.classList.remove('oculto');
+                btnToggle.textContent = "Ocultar Recordatorios";
+                renderizarNotas(); 
+            } else {
+                vistaDetalle.classList.add('oculto');
+                vistaResumen.classList.remove('oculto');
+                btnToggle.textContent = "Ver Recordatorios";
+                document.getElementById('contador-notas').textContent = misNotas.length;
+            }
+        }
+
+        function renderizarNotas() {
+            const contenedor = document.getElementById('contenedor-notas');
+            contenedor.innerHTML = ''; 
+
+            misNotas.forEach(nota => {
+                contenedor.innerHTML += `
+                    <li class="item-nota">
+                        <span style="flex-grow: 1; padding-right: 10px;">${nota.texto}</span>
+                        <div class="acciones-nota">
+                            <button title="Editar Nota" onclick="editarNota(${nota.id})">✏️</button>
+                            <button title="Eliminar Nota" onclick="eliminarNota(${nota.id})" style="color: var(--peligro);">🗑️</button>
+                        </div>
+                    </li>
+                `;
+            });
+            document.getElementById('contador-notas').textContent = misNotas.length;
+        }
+
+        function agregarNota() {
+            const nuevoTexto = prompt("Escribe tu nuevo recordatorio:");
+            if (nuevoTexto && nuevoTexto.trim() !== "") {
+                const nuevaNota = { id: Date.now(), texto: nuevoTexto };
+                misNotas.push(nuevaNota);
+                renderizarNotas();
+            }
+        }
+
+        function editarNota(id) {
+            const nota = misNotas.find(n => n.id === id);
+            const textoEditado = prompt("Edita tu recordatorio:", nota.texto);
+            if (textoEditado && textoEditado.trim() !== "") {
+                nota.texto = textoEditado;
+                renderizarNotas();
+            }
+        }
+
+        function eliminarNota(id) {
+            if (confirm("¿Estás seguro de eliminar este recordatorio?")) {
+                misNotas = misNotas.filter(n => n.id !== id);
+                renderizarNotas();
+            }
+        }
+    </script>
+</body>
+</html>

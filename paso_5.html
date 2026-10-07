@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema Docente - Paso 5 (Mis Grupos)</title>
+    <style>
+        /* Variables de la Paleta Institucional Educativa */
+        :root {
+            --guinda: #7A1C33;
+            --guinda-oscuro: #5A1425;
+            --dorado: #B38E5D;
+            --fondo: #F4F4F5;
+            --texto: #1F2937;
+            --borde: #E5E7EB;
+            --peligro: #DC2626;
+            --clase-actual: #e8f5e9; 
+            --clase-actual-borde: #4caf50;
+        }
+        
+        body { margin: 0; font-family: 'Segoe UI', system-ui, sans-serif; background: var(--fondo); color: var(--texto); display: flex; height: 100vh; overflow: hidden; }
+        .oculto { display: none !important; }
+        
+        /* Menú Lateral */
+        .sidebar { width: 250px; background: #27272A; color: white; display: flex; flex-direction: column; }
+        .sidebar-header { padding: 25px 20px; font-size: 18px; font-weight: bold; border-bottom: 1px solid #3F3F46; color: var(--dorado); text-transform: uppercase; letter-spacing: 1px; }
+        .menu-item { padding: 15px 20px; cursor: pointer; border-bottom: 1px solid #3F3F46; font-size: 14px; transition: 0.2s; }
+        .menu-item:hover { background: #3F3F46; }
+        .menu-item.activo { background: var(--guinda); border-left: 4px solid var(--dorado); font-weight: bold; }
+
+        /* Área de Contenido General */
+        .main-content { flex-grow: 1; padding: 40px; overflow-y: auto; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .header h1 { margin: 0; font-size: 24px; color: var(--guinda); }
+        
+        /* Botones */
+        .btn { background: var(--guinda); color: white; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; transition: 0.2s; }
+        .btn:hover { background: var(--guinda-oscuro); }
+        .btn-outline { background: white; border: 2px solid var(--borde); color: var(--texto); padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: bold; transition: 0.2s;}
+        .btn-outline:hover { background: var(--fondo); border-color: var(--texto); }
+
+        /* Tarjetas Base (Dashboard) */
+        .grid-dashboard { display: grid; grid-template-columns: 2fr 1fr; gap: 25px; align-items: start; }
+        .card { background: white; padding: 20px; border-radius: 10px; border: 1px solid var(--borde); box-shadow: 0 4px 6px rgba(0,0,0,0.02); margin-bottom: 20px;}
+        .card-clase-actual { background-color: var(--clase-actual); border: 2px solid var(--clase-actual-borde); border-left: 8px solid var(--clase-actual-borde); }
+        .card-proxima { border-left: 5px solid var(--guinda); opacity: 0.8; }
+        .btn-accion-clase { background: var(--clase-actual-borde); color: white; width: 100%; margin-top: 15px; border: none; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: bold;}
+        .btn-accion-clase:hover { background: #388e3c; }
+
+        /* =========================================================
+           NUEVOS ESTILOS: Clasificación de Grupos por Institución 
+           ========================================================= */
+        .institucion-header { 
+            background: #e2e8f0; 
+            padding: 12px 20px; 
+            border-left: 6px solid var(--dorado); 
+            border-radius: 6px; 
+            font-size: 18px; 
+            font-weight: bold; 
+            color: var(--texto); 
+            margin: 30px 0 15px 0;
+            display: flex;
+            align-items: center;
+        }
+        .grid-grupos {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .card-grupo {
+            background: white;
+            border: 1px solid var(--borde);
+            border-top: 4px solid var(--guinda);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            transition: 0.2s;
+        }
+        .card-grupo:hover { transform: translateY(-3px); box-shadow: 0 6px 12px rgba(0,0,0,0.08); }
+        .badge-materia { background: var(--fondo); color: var(--guinda-oscuro); padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; border: 1px solid var(--borde); display: inline-block; margin-bottom: 10px;}
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="sidebar-header">👨‍🏫 SEP Docente</div>
+        <div class="menu-item activo" id="btn-menu-dashboard" onclick="navegar('dashboard')">🏠 Inicio / Dashboard</div>
+        <div class="menu-item" id="btn-menu-resumen" class="oculto" style="display: none;">📊 Info. de la Clase</div>
+        <div class="menu-item" id="btn-menu-diario" class="oculto" style="display: none;">✅ Control Diario</div>
+        <!-- NUEVO BOTÓN CONECTADO -->
+        <div class="menu-item" id="btn-menu-grupos" onclick="navegar('grupos')">👥 Mis Grupos</div>
+        <div class="menu-item">⚙️ Configuración</div>
+    </div>
+
+    <div class="main-content">
+        
+        <!-- VISTA 1: DASHBOARD PRINCIPAL -->
+        <div id="vista-dashboard" class="vista">
+            <div class="header"><h1>Resumen General</h1></div>
+            <div class="grid-dashboard">
+                <div class="seccion-clases">
+                    <div class="card card-clase-actual">
+                        <span style="color: var(--clase-actual-borde); font-size: 14px; font-weight: bold; margin-bottom: 8px; display: block;">🟢 Clase en Curso Ahora</span>
+                        <h2 style="margin: 5px 0; color: #1b5e20; font-size: 26px;">Matemáticas I - Grupo 1-A</h2>
+                        <p style="margin: 5px 0; font-size: 15px;">🕒 11:00 hrs - 12:00 hrs &nbsp;|&nbsp; 📍 Aula 4 (Preparatoria Central)</p>
+                        <button class="btn-accion-clase" onclick="navegar('resumen')">Ver Información de la Clase ➔</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VISTA 2: MIS GRUPOS (Clasificados por Institución) -->
+        <div id="vista-grupos" class="vista oculto">
+            <div class="header">
+                <div>
+                    <h1>Directorio de Grupos</h1>
+                    <p style="margin: 5px 0 0 0; color: #6B7280; font-weight: bold;">Ciclo Escolar: 2026-B</p>
+                </div>
+                <button class="btn">+ Agregar Nuevo Grupo</button>
+            </div>
+            
+            <!-- Contenedor dinámico para inyectar las instituciones -->
+            <div id="contenedor-instituciones"></div>
+        </div>
+
+        <!-- Vistas previas ocultas para mantener la navegación SPA -->
+        <div id="vista-resumen" class="vista oculto">
+            <div class="header">
+                <h1>Dashboard de Clase (Grupo 1-A)</h1>
+                <button class="btn-outline" onclick="navegar('dashboard')">⬅ Volver al Inicio</button>
+            </div>
+            <p>Aquí va la vista de Información de la clase que construimos anteriormente.</p>
+        </div>
+
+    </div>
+
+    <script>
+        // --- 1. Base de Datos Simulada (Representa la respuesta JSON de Javalin/SQL Server) ---
+        // En SQL esto se obtiene mediante un INNER JOIN entre Grupos, Materias e Instituciones
+        const gruposDB = [
+            { id: 1, nombre: "Grupo 1-A", materia: "Matemáticas I", institucion: "Preparatoria Central", aula: "Aula 4", alumnos: 35 },
+            { id: 2, nombre: "Grupo 2-B", materia: "Física General", institucion: "Preparatoria Central", aula: "Laboratorio 1", alumnos: 28 },
+            { id: 3, nombre: "Grupo 1-C", materia: "Historia de México", institucion: "Preparatoria Central", aula: "Aula 2", alumnos: 32 },
+            { id: 4, nombre: "Grupo 3-A", materia: "Álgebra Lineal", institucion: "Instituto Técnico Estatal", aula: "Edificio C", alumnos: 22 },
+            { id: 5, nombre: "Grupo 3-B", materia: "Cálculo Diferencial", institucion: "Instituto Técnico Estatal", aula: "Edificio C", alumnos: 18 }
+        ];
+
+        // --- 2. Lógica de Navegación SPA ---
+        function navegar(pantallaDestino) {
+            // Ocultar todas las vistas
+            document.querySelectorAll('.vista').forEach(v => v.classList.add('oculto'));
+            
+            // Limpiar sombreado del menú lateral
+            document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('activo'));
+
+            // Mostrar la vista destino
+            document.getElementById('vista-' + pantallaDestino).classList.remove('oculto');
+            
+            // Sombrear el botón correcto (si existe)
+            const btnMenu = document.getElementById('btn-menu-' + pantallaDestino);
+            if(btnMenu) btnMenu.classList.add('activo');
+
+            // Si navegamos a grupos, ejecutar la función de renderizado
+            if(pantallaDestino === 'grupos') {
+                renderizarGruposPorInstitucion();
+            }
+        }
+
+        // --- 3. Lógica de Agrupación (Clasificar por Institución) ---
+        function renderizarGruposPorInstitucion() {
+            const contenedor = document.getElementById('contenedor-instituciones');
+            contenedor.innerHTML = ''; // Limpiar antes de dibujar
+
+            // Paso A: Agrupar los datos dinámicamente usando un Objeto
+            const gruposAgrupados = {};
+            
+            gruposDB.forEach(grupo => {
+                // Si la institución no existe en el objeto, la creamos como un arreglo vacío
+                if (!gruposAgrupados[grupo.institucion]) {
+                    gruposAgrupados[grupo.institucion] = [];
+                }
+                // Insertamos el grupo dentro de su institución correspondiente
+                gruposAgrupados[grupo.institucion].push(grupo);
+            });
+
+            // Paso B: Dibujar HTML basado en los datos agrupados
+            for (const [institucion, grupos] of Object.entries(gruposAgrupados)) {
+                
+                // Dibujar la cabecera de la Institución
+                let htmlSeccion = `
+                    <div class="institucion-header">
+                        🏛️ ${institucion} <span style="font-size: 13px; color: #6B7280; font-weight: normal; margin-left: 10px;">(${grupos.length} grupos activos)</span>
+                    </div>
+                    <div class="grid-grupos">
+                `;
+
+                // Dibujar las tarjetas de los grupos que pertenecen a esta Institución
+                grupos.forEach(g => {
+                    htmlSeccion += `
+                        <div class="card-grupo">
+                            <span class="badge-materia">📚 ${g.materia}</span>
+                            <h2 style="margin: 0 0 10px 0; color: var(--texto); font-size: 20px;">${g.nombre}</h2>
+                            <p style="margin: 5px 0; color: #6B7280; font-size: 14px;">📍 ${g.aula}</p>
+                            <p style="margin: 5px 0 15px 0; color: #6B7280; font-size: 14px;">👥 ${g.alumnos} Alumnos inscritos</p>
+                            <button class="btn" style="width: 100%;" onclick="navegar('resumen')">Ver Grupo ➔</button>
+                        </div>
+                    `;
+                });
+
+                htmlSeccion += `</div>`; // Cerrar el grid
+                contenedor.innerHTML += htmlSeccion; // Inyectar al HTML
+            }
+        }
+    </script>
+</body>
+</html>

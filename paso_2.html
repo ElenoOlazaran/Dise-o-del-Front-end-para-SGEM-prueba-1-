@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema Docente - Paso 2 (Evaluación Dinámica)</title>
+    <style>
+        /* 1. Variables de la Paleta Institucional */
+        :root {
+            --guinda: #7A1C33;
+            --guinda-oscuro: #5A1425;
+            --dorado: #B38E5D;
+            --fondo: #F4F4F5;
+            --texto: #1F2937;
+            --borde: #E5E7EB;
+            --peligro: #DC2626;
+            --clase-actual: #e8f5e9; 
+            --clase-actual-borde: #4caf50;
+        }
+        
+        body { margin: 0; font-family: 'Segoe UI', system-ui, sans-serif; background: var(--fondo); color: var(--texto); display: flex; height: 100vh; overflow: hidden; }
+        .oculto { display: none !important; }
+        
+        /* 2. Menú Lateral */
+        .sidebar { width: 250px; background: #27272A; color: white; display: flex; flex-direction: column; }
+        .sidebar-header { padding: 25px 20px; font-size: 18px; font-weight: bold; border-bottom: 1px solid #3F3F46; color: var(--dorado); text-transform: uppercase; letter-spacing: 1px; }
+        .menu-item { padding: 15px 20px; cursor: pointer; border-bottom: 1px solid #3F3F46; font-size: 14px; transition: 0.2s; }
+        .menu-item:hover { background: #3F3F46; }
+        .menu-item.activo { background: var(--guinda); border-left: 4px solid var(--dorado); font-weight: bold; }
+
+        /* 3. Área de Contenido General */
+        .main-content { flex-grow: 1; padding: 40px; overflow-y: auto; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .header h1 { margin: 0; font-size: 24px; color: var(--guinda); }
+        
+        /* 4. Tarjetas Dashboard */
+        .grid-dashboard { display: grid; grid-template-columns: 2fr 1fr; gap: 25px; align-items: start; }
+        .seccion-clases { display: flex; flex-direction: column; gap: 15px; }
+        .card { background: white; padding: 20px; border-radius: 10px; border: 1px solid var(--borde); box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
+        .card-clase-actual { background-color: var(--clase-actual); border: 2px solid var(--clase-actual-borde); border-left: 8px solid var(--clase-actual-borde); }
+        .card-proxima { border-left: 5px solid var(--guinda); opacity: 0.8; }
+        .etiqueta-gris { color: #6B7280; font-size: 12px; text-transform: uppercase; font-weight: bold; display: block; margin-bottom: 8px;}
+        .etiqueta-destacada { color: var(--clase-actual-borde); font-size: 14px; text-transform: uppercase; font-weight: bold; display: block; margin-bottom: 8px;}
+
+        /* 5. Botones */
+        .btn { background: var(--guinda); color: white; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; transition: 0.2s; }
+        .btn:hover { background: var(--guinda-oscuro); }
+        .btn-accion-clase { background: var(--clase-actual-borde); color: white; width: 100%; margin-top: 15px;}
+        .btn-accion-clase:hover { background: #388e3c; }
+
+        /* 6. Estilos de la Tabla de Control Diario y Criterios */
+        .barra-contexto { display: flex; justify-content: space-between; align-items: center; background: white; padding: 15px 20px; border-radius: 8px; border: 1px solid var(--borde); margin-bottom: 20px; }
+        .barra-contexto input[type="date"] { padding: 8px; border-radius: 5px; border: 1px solid var(--borde); font-weight: bold; color: var(--texto); }
+        
+        .selector-criterios { background: #fffbeb; border: 1px solid #fde68a; padding: 12px 20px; border-radius: 8px; margin-bottom: 15px; display: flex; gap: 20px; align-items: center;}
+        .selector-criterios label { font-size: 14px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 5px; color: #92400e;}
+        
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; border: 1px solid var(--borde); }
+        th, td { padding: 15px; text-align: center; border-bottom: 1px solid var(--borde); font-size: 14px; }
+        th { background: #F8FAFC; color: var(--guinda); text-transform: uppercase; font-size: 12px; border-bottom: 2px solid var(--dorado); }
+        td.text-left { text-align: left; font-weight: 500; }
+        input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--guinda); cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="sidebar-header">👨‍🏫 SEP Docente</div>
+        <div class="menu-item activo" id="btn-menu-dashboard" onclick="navegar('dashboard')">🏠 Inicio / Dashboard</div>
+        <div class="menu-item" id="btn-menu-diario" onclick="navegar('diario')">✅ Control Diario</div>
+        <div class="menu-item">👥 Mis Grupos y Alumnos</div>
+        <div class="menu-item">⚙️ Configuración</div>
+    </div>
+
+    <div class="main-content">
+        
+        <!-- VISTA 1: DASHBOARD PRINCIPAL -->
+        <div id="vista-dashboard" class="vista">
+            <div class="header">
+                <h1>Resumen General</h1>
+                <select style="padding: 8px; border-radius: 5px; border: 1px solid var(--borde); font-weight: bold; background: white;">
+                    <option>Ciclo 2026-B (Actual)</option>
+                </select>
+            </div>
+
+            <div class="grid-dashboard">
+                <div class="seccion-clases">
+                    <div class="card card-clase-actual">
+                        <span class="etiqueta-destacada">🟢 Clase en Curso Ahora</span>
+                        <h2 style="margin: 5px 0; color: #1b5e20; font-size: 26px;">Matemáticas I - Grupo 1-A</h2>
+                        <p style="margin: 5px 0; font-size: 15px;">🕒 11:00 hrs - 12:00 hrs &nbsp;|&nbsp; 📍 Aula 4 (Primaria)</p>
+                        <button class="btn btn-accion-clase" onclick="navegar('diario')">Entrar a Control Diario ➔</button>
+                    </div>
+
+                    <div class="card card-proxima">
+                        <span class="etiqueta-gris">⏭️ Siguiente Clase</span>
+                        <h2 style="margin: 5px 0; color: var(--guinda); font-size: 20px;">Física General - Grupo 2-B</h2>
+                        <p style="margin: 5px 0; font-size: 14px;">🕒 12:00 hrs - 13:00 hrs &nbsp;|&nbsp; 📍 Laboratorio 1</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VISTA 2: CONTROL DIARIO (Tabla de Evaluación Dinámica) -->
+        <div id="vista-diario" class="vista oculto">
+            <div class="header" style="margin-bottom: 15px;">
+                <div>
+                    <h1>Matemáticas I - Grupo 1-A</h1>
+                    <p style="margin: 5px 0 0 0; color: #6B7280; font-weight: bold;">Toma de Asistencia y Evaluación Diaria</p>
+                </div>
+            </div>
+
+            <div class="barra-contexto">
+                <div>
+                    <span style="font-weight: bold; margin-right: 10px;">Fecha:</span>
+                    <input type="date" value="2026-10-04" id="fecha-diario">
+                </div>
+                <button class="btn" style="background: #15803D;" id="btnGuardarDiario" onclick="guardarControlDiario()">💾 Guardar Día</button>
+            </div>
+
+            <!-- SELECCIÓN DINÁMICA DE CONCEPTOS A EVALUAR HOY -->
+            <div class="selector-criterios">
+                <span style="color: #b45309; font-weight: bold;">¿Qué evaluaremos hoy?</span>
+                <label><input type="checkbox" checked onchange="toggleColumna('col-asistencia')"> Asistencia</label>
+                <label><input type="checkbox" checked onchange="toggleColumna('col-tarea')"> Tarea</label>
+                <label><input type="checkbox" onchange="toggleColumna('col-actividad')"> Actividad en Clase</label>
+                <label><input type="checkbox" onchange="toggleColumna('col-participacion')"> Participación</label>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th class="text-left">Nombre del Alumno</th>
+                        <th class="col-asistencia">👋 Asistencia</th>
+                        <th class="col-tarea">📝 Tarea</th>
+                        <th class="col-actividad oculto">✍️ Actividad en Clase</th>
+                        <th class="col-participacion oculto">🗣️ Participación</th>
+                    </tr>
+                </thead>
+                <tbody id="tabla-alumnos">
+                    <tr>
+                        <td class="text-left">Juan Pérez Rodríguez</td>
+                        <td class="col-asistencia"><input type="checkbox" checked></td>
+                        <td class="col-tarea"><input type="checkbox" checked></td>
+                        <td class="col-actividad oculto"><input type="checkbox"></td>
+                        <td class="col-participacion oculto"><input type="checkbox"></td>
+                    </tr>
+                    <tr>
+                        <td class="text-left">Ana Gómez Sánchez</td>
+                        <td class="col-asistencia"><input type="checkbox" checked></td>
+                        <td class="col-tarea"><input type="checkbox"></td>
+                        <td class="col-actividad oculto"><input type="checkbox"></td>
+                        <td class="col-participacion oculto"><input type="checkbox"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+    <script>
+        // --- 1. Lógica de Navegación SPA ---
+        function navegar(pantallaDestino) {
+            document.getElementById('vista-dashboard').classList.add('oculto');
+            document.getElementById('vista-diario').classList.add('oculto');
+            
+            document.getElementById('btn-menu-dashboard').classList.remove('activo');
+            document.getElementById('btn-menu-diario').classList.remove('activo');
+
+            if(pantallaDestino === 'dashboard') {
+                document.getElementById('vista-dashboard').classList.remove('oculto');
+                document.getElementById('btn-menu-dashboard').classList.add('activo');
+            } else if(pantallaDestino === 'diario') {
+                document.getElementById('vista-diario').classList.remove('oculto');
+                document.getElementById('btn-menu-diario').classList.add('activo');
+            }
+        }
+
+        // --- 2. Lógica Dinámica de Columnas ---
+        function toggleColumna(nombreClase) {
+            // Busca todos los elementos (<th> y <td>) que tengan la clase seleccionada
+            const celdas = document.querySelectorAll('.' + nombreClase);
+            celdas.forEach(celda => {
+                // Alterna la clase "oculto" para esconderlos o mostrarlos
+                celda.classList.toggle('oculto');
+            });
+        }
+
+        // --- 3. Lógica de Guardado ---
+        function guardarControlDiario() {
+            const btn = document.getElementById('btnGuardarDiario');
+            const textoOriginal = btn.innerHTML;
+            
+            btn.innerHTML = "✅ ¡Datos Guardados!";
+            btn.style.background = "#065F46"; 
+            
+            setTimeout(() => {
+                btn.innerHTML = textoOriginal;
+                btn.style.background = "#15803D"; 
+            }, 2000);
+        }
+    </script>
+</body>
+</html>
